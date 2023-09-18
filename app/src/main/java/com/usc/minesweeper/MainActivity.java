@@ -1,4 +1,5 @@
 package com.usc.minesweeper;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -8,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.gridlayout.widget.GridLayout;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,7 +33,8 @@ public class MainActivity extends AppCompatActivity {
     public static boolean flagMode = false;
     public Handler handler;
     public static int timer = 0;
-
+    boolean gameOver = false;
+    String winOrLoss = "";
     private int dpToPixel(int dp) {
         float density = Resources.getSystem().getDisplayMetrics().density;
         return Math.round(dp * density);
@@ -153,6 +156,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClickTV(View view){
         TextView tv = (TextView) view;
+        if(gameOver == true) { sendIntent(); return; }
         if(tv.getCurrentTextColor() != Color.GREEN) return;
 
         int n = findIndexOfCellTextView(tv);
@@ -166,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
             if(bombLocation[i][j]){
                 //user clicks a mine -> end the game
                 Log.d("Debugger", "Player has clicked the mine. Game is now ending");
-                sendIntent("loss");
+                endGame(this,"loss");
             }
             else if(!flagLocation[i][j]){
                 //set the number of numbers around it
@@ -225,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
             FLAGS_LEFT++;
         }
         //if there isnt, insert it
-        else if(FLAGS_LEFT > 0){
+        else{
             tv.setText(getResources().getString(R.string.flag));
             flagLocation[i][j] = true;
             FLAGS_LEFT--;
@@ -242,21 +246,43 @@ public class MainActivity extends AppCompatActivity {
         else tv.setText(getResources().getString(R.string.flag));
     }
 
-    public void sendIntent(String winOrLoss){
+    public void endGame(Context context, String winOrLoss_){
+        gameOver = true;
+        winOrLoss = winOrLoss_;
         //ends the timer thread before moving on
         handler.removeCallbacksAndMessages(null);
-        //winOrLoss should only be of Strings "win" or "loss"
+
+        revealBombs();
+
+        //In the case that a user selects somewhere outside of the GridLayout
+        ConstraintLayout root = findViewById(R.id.root);
+        root.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendIntent();
+            }
+        });
+    }
+    public void sendIntent(){
         Intent intent = new Intent(this, ResultActivity.class);
         intent.putExtra("result", winOrLoss);
         intent.putExtra("timer", String.valueOf(timer));
         startActivity(intent);
     }
 
-    public void checkWinCondition(){
-        if (Arrays.deepEquals(bombLocation, flagLocation) && Arrays.deepEquals(bombLocation, uncheckedLocation)) {
-            //user has won
-            sendIntent("win");
+    public void revealBombs(){
+        for(int i=0; i<ROW_COUNT; ++i){
+            for(int j=0; j<COLUMN_COUNT; ++j){
+                if(bombLocation[i][j]){
+                    TextView tv = getTextViewByCoordinates(i, j);
+                    tv.setText(getResources().getString(R.string.mine));
+                }
+            }
         }
+    }
+
+    public void checkWinCondition(){
+        if (Arrays.deepEquals(bombLocation, uncheckedLocation)) endGame(this, "win");
     }
 
     public void resetGame(){
