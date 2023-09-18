@@ -49,14 +49,14 @@ public class MainActivity extends AppCompatActivity {
             resetGame();
         }
 
-        cell_tvs = new ArrayList<TextView>();
+        cell_tvs = new ArrayList<>();
         initializeGrid();
         initializeTimer();
         setFlagsTextView();
 
 
         // Method (2): add four dynamically created cells
-        GridLayout grid = (GridLayout) findViewById(R.id.gridLayout01);
+        GridLayout grid = findViewById(R.id.gridLayout01);
         for (int i = 0; i<ROW_COUNT; i++) {
             for (int j=0; j<COLUMN_COUNT; j++) {
                 TextView tv = new TextView(this);
@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
         return k;
     }
     public void initializeTimer(){
-        TextView tv = (TextView) findViewById(R.id.timerCount);
+        TextView tv = findViewById(R.id.timerCount);
         handler = new Handler();
 
         handler.post(new Runnable() {
@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setFlagsTextView(){
-        TextView tv = (TextView) findViewById(R.id.flagCount);
+        TextView tv = findViewById(R.id.flagCount);
         tv.setText(String.valueOf(FLAGS_LEFT));
     }
 
@@ -156,21 +156,22 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClickTV(View view){
         TextView tv = (TextView) view;
-        if(gameOver == true) { sendIntent(); return; }
-        if(tv.getCurrentTextColor() != Color.GREEN) return;
 
         int n = findIndexOfCellTextView(tv);
         int i = n/COLUMN_COUNT;
         int j = n%COLUMN_COUNT;
-        //tv.setText(String.valueOf(i)+String.valueOf(j));
-        //tv.setTextColor(Color.GRAY);
+
+        if(gameOver) { sendIntent(); return; }
+        //if there is a flag on a gray, allow the user to remove
+        if(flagMode && tv.getCurrentTextColor() == Color.BLACK) toggleFlag(tv, i, j);
+        if(tv.getCurrentTextColor() != Color.GREEN) return;
 
         //redundant code
         if (!flagMode) {
             if(bombLocation[i][j]){
                 //user clicks a mine -> end the game
                 Log.d("Debugger", "Player has clicked the mine. Game is now ending");
-                endGame(this,"loss");
+                endGame("loss");
             }
             else if(!flagLocation[i][j]){
                 //set the number of numbers around it
@@ -246,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
         else tv.setText(getResources().getString(R.string.flag));
     }
 
-    public void endGame(Context context, String winOrLoss_){
+    public void endGame(String winOrLoss_){
         gameOver = true;
         winOrLoss = winOrLoss_;
         //ends the timer thread before moving on
@@ -282,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void checkWinCondition(){
-        if (Arrays.deepEquals(bombLocation, uncheckedLocation)) endGame(this, "win");
+        if (Arrays.deepEquals(bombLocation, uncheckedLocation)) endGame("win");
     }
 
     public void resetGame(){

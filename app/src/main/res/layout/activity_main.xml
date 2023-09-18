@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:padding="16sp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="@+id/gridLayout01"
         app:layout_constraintEnd_toEndOf="parent"
@@ -23,20 +23,21 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical|center_horizontal"> <!-- Center horizontally and vertically -->
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="32dp"
-            android:text="@string/flag"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="32sp"
+                android:text="@string/flag"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="32dp"
-            android:paddingStart="4dp"
-            android:id="@+id/flagCount"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="32sp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:id="@+id/flagCount"/>
         </LinearLayout>
 
         <LinearLayout
@@ -44,22 +45,24 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical|center_horizontal"> <!-- Center horizontally and vertically -->
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="32dp"
-            android:text="@string/clock"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="32sp"
+                android:text="@string/clock"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="32dp"
-            android:paddingStart="4dp"
-            android:id="@+id/timerCount"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="32sp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:id="@+id/timerCount"/>
         </LinearLayout>
     </LinearLayout>
+
 
 
     <androidx.gridlayout.widget.GridLayout
@@ -92,7 +95,7 @@
         android:height="64dp"
         android:text="@string/pick"
         android:textAlignment="center"
-        android:textSize="32dp"
+        android:textSize="32sp"
         app:layout_column="0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
