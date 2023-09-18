@@ -186,11 +186,11 @@ public class MainActivity extends AppCompatActivity {
 
         TextView tv = getTextViewByCoordinates(i, j);
 
-
         tv.setBackgroundColor(Color.LTGRAY);
         tv.setTextColor(Color.BLACK);
         uncheckedLocation[i][j] = false;
         if (adjacentValues[i][j] != 0) {
+            if(flagLocation[i][j]) toggleFlag(tv, i, j);
             tv.setText(String.valueOf(adjacentValues[i][j]));
             return;
         }
