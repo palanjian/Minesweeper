@@ -1,4 +1,5 @@
 package com.usc.minesweeper;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.gridlayout.widget.GridLayout;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
@@ -23,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<TextView> cell_tvs;
     private boolean[][] bombLocation;
     private boolean[][] flagLocation;
+    private boolean[][] uncheckedLocation;
 
     //"State" variable, whether or not user is in flag mode
     public static boolean flagMode = false;
@@ -37,6 +40,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (getIntent().getBooleanExtra("restartGame", false)) {
+            // Reset the game here
+            resetGame();
+        }
 
         cell_tvs = new ArrayList<TextView>();
         initializeBombs();
@@ -73,7 +80,18 @@ public class MainActivity extends AppCompatActivity {
         Random rand = new Random(System.currentTimeMillis());
         bombLocation = new boolean[ROW_COUNT][COLUMN_COUNT];
         flagLocation = new boolean[ROW_COUNT][COLUMN_COUNT];
+        uncheckedLocation = new boolean[ROW_COUNT][COLUMN_COUNT];
 
+        //initializes all arrays values
+        for(int i=0; i<ROW_COUNT; ++i){
+            for(int j=0; j<COLUMN_COUNT; ++j){
+                bombLocation[i][j] = false;
+                flagLocation[i][j] = false;
+                uncheckedLocation[i][j] = true;
+            }
+        }
+
+        //randomly places bombs
         for(int i=0; i<NUMBER_OF_BOMBS; ++i){
             int bombIndex = rand.nextInt(ROW_COUNT * COLUMN_COUNT);
             int bombRow = bombIndex/COLUMN_COUNT;
@@ -90,8 +108,7 @@ public class MainActivity extends AppCompatActivity {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                int seconds = timer%60;
-                String time = String.format("%03d", seconds);
+                String time = String.format("%03d", timer);
                 tv.setText(time);
 
                 ++timer;
@@ -126,16 +143,18 @@ public class MainActivity extends AppCompatActivity {
         //redundant code
         if (!flagMode) {
             if(bombLocation[i][j]){
-                //end the game
-                tv.setBackgroundColor(Color.RED);
+                //user clicks a mine -> end the game
                 Log.d("Debugger", "Player has clicked the mine. Game is now ending");
+                sendIntent("loss");
             }
             else if(!flagLocation[i][j]){
                 //set the number of numbers around it
                 tv.setBackgroundColor(Color.LTGRAY);
+                uncheckedLocation[i][j] = false;
             }
         }
         else toggleFlag(tv, i, j);
+        checkWinCondition();
     }
 
     public void toggleFlag(TextView tv, int i, int j){
@@ -161,5 +180,27 @@ public class MainActivity extends AppCompatActivity {
         Log.d("Debugger", "Icon currently is " + tv.getText() + ". flagMode is " + flagMode);
         if(tv.getText().equals(getResources().getString(R.string.flag))) tv.setText(getResources().getString(R.string.pick));
         else tv.setText(getResources().getString(R.string.flag));
+    }
+
+    public void sendIntent(String winOrLoss){
+        //winOrLoss should only be of Strings "win" or "loss"
+        Intent intent = new Intent(this, ResultActivity.class);
+        intent.putExtra("result", winOrLoss);
+        intent.putExtra("timer", String.valueOf(timer));
+        startActivity(intent);
+    }
+
+    public void checkWinCondition(){
+        if (Arrays.deepEquals(bombLocation, flagLocation) && Arrays.deepEquals(bombLocation, uncheckedLocation)) {
+            //user has won
+            sendIntent("win");
+        }
+    }
+
+    public void resetGame(){
+        Log.d("Debugger", "Resetting game");
+        FLAGS_LEFT = NUMBER_OF_BOMBS;
+        flagMode = false;
+        timer = 0;
     }
 }

@@ -91,7 +91,7 @@
         android:height="64dp"
         android:text="@string/pick"
         android:textAlignment="center"
-        android:textSize="32sp"
+        android:textSize="32dp"
         app:layout_column="0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
