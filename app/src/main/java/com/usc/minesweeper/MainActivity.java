@@ -109,4 +109,13 @@ public class MainActivity extends AppCompatActivity {
             //implement flag functionality
         }
     }
+
+    public void switchMode(View view){
+        TextView button = (TextView) view;
+        flagMode = !flagMode;
+
+        Log.d("Debugger", "Icon currently is " + button.getText() + ". flagMode is " + flagMode);
+        if(button.getText().equals(getResources().getString(R.string.flag))) button.setText(getResources().getString(R.string.pick));
+        else button.setText(getResources().getString(R.string.flag));
+    }
 }
