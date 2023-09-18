@@ -26,9 +26,10 @@ public class MainActivity extends AppCompatActivity {
     private boolean[][] bombLocation;
     private boolean[][] flagLocation;
     private boolean[][] uncheckedLocation;
-
+    private int[][] adjacentValues;
     //"State" variable, whether or not user is in flag mode
     public static boolean flagMode = false;
+    public Handler handler;
     public static int timer = 0;
 
     private int dpToPixel(int dp) {
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         cell_tvs = new ArrayList<TextView>();
-        initializeBombs();
+        initializeGrid();
         initializeTimer();
         setFlagsTextView();
 
@@ -58,12 +59,16 @@ public class MainActivity extends AppCompatActivity {
                 TextView tv = new TextView(this);
                 tv.setHeight( dpToPixel(32) );
                 tv.setWidth( dpToPixel(32) );
-                tv.setTextSize( 16 );//dpToPixel(32) );
+                tv.setTextSize( 16 );
                 tv.setTextAlignment(TextView.TEXT_ALIGNMENT_CENTER);
+                //for some weird reason, if i change this line i get
+                // "Channel is unrecoverably broken and will be disposed!"
+                //and program fails to compile. couldn't find anything to explain it
                 tv.setTextColor(Color.GREEN);
+                //
                 tv.setBackgroundColor(Color.GREEN);
-                tv.setOnClickListener(this::onClickTV);
 
+                tv.setOnClickListener(this::onClickTV);
                 GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
                 lp.setMargins(dpToPixel(2), dpToPixel(2), dpToPixel(2), dpToPixel(2));
                 lp.rowSpec = GridLayout.spec(i);
@@ -76,20 +81,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void initializeBombs() {
+    private void initializeGrid() {
         Random rand = new Random(System.currentTimeMillis());
         bombLocation = new boolean[ROW_COUNT][COLUMN_COUNT];
         flagLocation = new boolean[ROW_COUNT][COLUMN_COUNT];
         uncheckedLocation = new boolean[ROW_COUNT][COLUMN_COUNT];
-
-        //initializes all arrays values
-        for(int i=0; i<ROW_COUNT; ++i){
-            for(int j=0; j<COLUMN_COUNT; ++j){
-                bombLocation[i][j] = false;
-                flagLocation[i][j] = false;
-                uncheckedLocation[i][j] = true;
-            }
-        }
+        adjacentValues = new int[ROW_COUNT][COLUMN_COUNT];
 
         //randomly places bombs
         for(int i=0; i<NUMBER_OF_BOMBS; ++i){
@@ -100,10 +97,34 @@ public class MainActivity extends AppCompatActivity {
             if(bombLocation[bombRow][bombColumn]) --i;
             else bombLocation[bombRow][bombColumn] = true;
         }
+
+        //initializes all arrays values
+        for(int i=0; i<ROW_COUNT; ++i){
+            for(int j=0; j<COLUMN_COUNT; ++j){
+                uncheckedLocation[i][j] = true;
+                adjacentValues[i][j] = getAdjacents(i, j);
+            }
+        }
+    }
+    public int getAdjacents(int i, int j) {
+        int k = 0;
+        int rows = ROW_COUNT;
+        int columns = COLUMN_COUNT;
+
+        if (i + 1 < rows && bombLocation[i + 1][j]) ++k;
+        if (i - 1 >= 0 && bombLocation[i - 1][j]) ++k;
+        if (j + 1 < columns && bombLocation[i][j + 1]) ++k;
+        if (j - 1 >= 0 && bombLocation[i][j - 1]) ++k;
+        if (i + 1 < rows && j + 1 < columns && bombLocation[i + 1][j + 1]) ++k;
+        if (i - 1 >= 0 && j - 1 >= 0 && bombLocation[i - 1][j - 1]) ++k;
+        if (i + 1 < rows && j - 1 >= 0 && bombLocation[i + 1][j - 1]) ++k;
+        if (i - 1 >= 0 && j + 1 < columns && bombLocation[i - 1][j + 1]) ++k;
+
+        return k;
     }
     public void initializeTimer(){
         TextView tv = (TextView) findViewById(R.id.timerCount);
-        final Handler handler = new Handler();
+        handler = new Handler();
 
         handler.post(new Runnable() {
             @Override
@@ -149,12 +170,51 @@ public class MainActivity extends AppCompatActivity {
             }
             else if(!flagLocation[i][j]){
                 //set the number of numbers around it
-                tv.setBackgroundColor(Color.LTGRAY);
-                uncheckedLocation[i][j] = false;
+                revealCells(i, j);
             }
         }
         else toggleFlag(tv, i, j);
         checkWinCondition();
+    }
+
+    public void revealCells(int i, int j) {
+        if (i < 0 || j < 0 || i >= ROW_COUNT || j >= COLUMN_COUNT || !uncheckedLocation[i][j]) return;
+
+        TextView tv = getTextViewByCoordinates(i, j);
+
+
+        tv.setBackgroundColor(Color.LTGRAY);
+        tv.setTextColor(Color.BLACK);
+        uncheckedLocation[i][j] = false;
+        if (adjacentValues[i][j] != 0) {
+            tv.setText(String.valueOf(adjacentValues[i][j]));
+            return;
+        }
+
+
+        // recursively reveal neighboring cells
+        revealCells(i + 1, j);
+        revealCells(i - 1, j);
+        revealCells(i, j + 1);
+        revealCells(i, j - 1);
+        revealCells(i + 1, j + 1);
+        revealCells(i - 1, j - 1);
+        revealCells(i - 1, j + 1);
+        revealCells(i + 1, j - 1);
+    }
+
+
+    public TextView getTextViewByCoordinates(int i, int j) {
+        for (TextView tv : cell_tvs) {
+            int n = findIndexOfCellTextView(tv);
+            int row = n / COLUMN_COUNT;
+            int column = n % COLUMN_COUNT;
+
+            if (row == i && column == j) {
+                return tv;
+            }
+        }
+        return null;
     }
 
     public void toggleFlag(TextView tv, int i, int j){
@@ -183,6 +243,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void sendIntent(String winOrLoss){
+        //ends the timer thread before moving on
+        handler.removeCallbacksAndMessages(null);
         //winOrLoss should only be of Strings "win" or "loss"
         Intent intent = new Intent(this, ResultActivity.class);
         intent.putExtra("result", winOrLoss);
