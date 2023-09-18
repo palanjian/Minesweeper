@@ -2,14 +2,12 @@ package com.usc.minesweeper;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.gridlayout.widget.GridLayout;
-
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -28,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
     //"State" variable, whether or not user is in flag mode
     public static boolean flagMode = false;
-
+    public static int timer = 0;
 
     private int dpToPixel(int dp) {
         float density = Resources.getSystem().getDisplayMetrics().density;
@@ -42,7 +40,9 @@ public class MainActivity extends AppCompatActivity {
 
         cell_tvs = new ArrayList<TextView>();
         initializeBombs();
+        initializeTimer();
         setFlagsTextView();
+
 
         // Method (2): add four dynamically created cells
         GridLayout grid = (GridLayout) findViewById(R.id.gridLayout01);
@@ -82,6 +82,22 @@ public class MainActivity extends AppCompatActivity {
             if(bombLocation[bombRow][bombColumn]) --i;
             else bombLocation[bombRow][bombColumn] = true;
         }
+    }
+    public void initializeTimer(){
+        TextView tv = (TextView) findViewById(R.id.timerCount);
+        final Handler handler = new Handler();
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                int seconds = timer%60;
+                String time = String.format("%03d", seconds);
+                tv.setText(time);
+
+                ++timer;
+                handler.postDelayed(this, 1000);
+            }
+        });
     }
 
     private void setFlagsTextView(){

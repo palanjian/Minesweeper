@@ -35,8 +35,7 @@
             android:layout_height="wrap_content"
             android:textSize="32dp"
             android:paddingStart="4dp"
-            android:id="@+id/flagCount"
-            android:text=""/>
+            android:id="@+id/flagCount"/>
         </LinearLayout>
 
         <LinearLayout
@@ -57,8 +56,7 @@
             android:layout_height="wrap_content"
             android:textSize="32dp"
             android:paddingStart="4dp"
-            android:id="@+id/timeCount"
-            android:text="0"/>
+            android:id="@+id/timerCount"/>
         </LinearLayout>
     </LinearLayout>
 
