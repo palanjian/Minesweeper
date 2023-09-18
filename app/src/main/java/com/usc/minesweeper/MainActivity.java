@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int COLUMN_COUNT = 2;
+    private static final int COLUMN_COUNT = 10;
 
     // save the TextViews of all cells in an array, so later on,
     // when a TextView is clicked, we know which cell it is
@@ -40,8 +40,8 @@ public class MainActivity extends AppCompatActivity {
                 tv.setWidth( dpToPixel(32) );
                 tv.setTextSize( 16 );//dpToPixel(32) );
                 tv.setTextAlignment(TextView.TEXT_ALIGNMENT_CENTER);
-                tv.setTextColor(Color.GRAY);
-                tv.setBackgroundColor(Color.GRAY);
+                tv.setTextColor(Color.GREEN);
+                tv.setBackgroundColor(Color.GREEN);
                 tv.setOnClickListener(this::onClickTV);
 
                 GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
@@ -71,11 +71,10 @@ public class MainActivity extends AppCompatActivity {
         int j = n%COLUMN_COUNT;
         tv.setText(String.valueOf(i)+String.valueOf(j));
         if (tv.getCurrentTextColor() == Color.GREEN) {
-            tv.setTextColor(Color.GREEN);
-            tv.setBackgroundColor(Color.parseColor("lime"));
-        }else {
             tv.setTextColor(Color.GRAY);
             tv.setBackgroundColor(Color.LTGRAY);
+        }else {
+            //do nothing
         }
     }
 }
