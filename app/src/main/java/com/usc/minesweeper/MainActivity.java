@@ -19,11 +19,12 @@ public class MainActivity extends AppCompatActivity {
     private static final int ROW_COUNT = 12;
 
     private static final int NUMBER_OF_BOMBS = 4;
-    private static int BOMBS_LEFT = NUMBER_OF_BOMBS;
+    private static int FLAGS_LEFT = NUMBER_OF_BOMBS;
     // save the TextViews of all cells in an array, so later on,
     // when a TextView is clicked, we know which cell it is
     private ArrayList<TextView> cell_tvs;
     private boolean[][] bombLocation;
+    private boolean[][] flagLocation;
 
     //"State" variable, whether or not user is in flag mode
     public static boolean flagMode = false;
@@ -41,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
 
         cell_tvs = new ArrayList<TextView>();
         initializeBombs();
+        setFlagsTextView();
+
         // Method (2): add four dynamically created cells
         GridLayout grid = (GridLayout) findViewById(R.id.gridLayout01);
         for (int i = 0; i<ROW_COUNT; i++) {
@@ -69,6 +72,8 @@ public class MainActivity extends AppCompatActivity {
     private void initializeBombs() {
         Random rand = new Random(System.currentTimeMillis());
         bombLocation = new boolean[ROW_COUNT][COLUMN_COUNT];
+        flagLocation = new boolean[ROW_COUNT][COLUMN_COUNT];
+
         for(int i=0; i<NUMBER_OF_BOMBS; ++i){
             int bombIndex = rand.nextInt(ROW_COUNT * COLUMN_COUNT);
             int bombRow = bombIndex/COLUMN_COUNT;
@@ -77,6 +82,11 @@ public class MainActivity extends AppCompatActivity {
             if(bombLocation[bombRow][bombColumn]) --i;
             else bombLocation[bombRow][bombColumn] = true;
         }
+    }
+
+    private void setFlagsTextView(){
+        TextView tv = (TextView) findViewById(R.id.flagCount);
+        tv.setText(String.valueOf(FLAGS_LEFT));
     }
 
     private int findIndexOfCellTextView(TextView tv) {
@@ -89,6 +99,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClickTV(View view){
         TextView tv = (TextView) view;
+        if(tv.getCurrentTextColor() != Color.GREEN) return;
+
         int n = findIndexOfCellTextView(tv);
         int i = n/COLUMN_COUNT;
         int j = n%COLUMN_COUNT;
@@ -96,26 +108,42 @@ public class MainActivity extends AppCompatActivity {
         //tv.setTextColor(Color.GRAY);
 
         //redundant code
-        if (tv.getCurrentTextColor() == Color.GREEN && !flagMode) {
+        if (!flagMode) {
             if(bombLocation[i][j]){
+                //end the game
                 tv.setBackgroundColor(Color.RED);
-                BOMBS_LEFT--;
+                Log.d("Debugger", "Player has clicked the mine. Game is now ending");
             }
-            else{
+            else if(!flagLocation[i][j]){
+                //set the number of numbers around it
                 tv.setBackgroundColor(Color.LTGRAY);
             }
         }
-        else if (tv.getCurrentTextColor() == Color.GRAY && flagMode){
-            //implement flag functionality
+        else toggleFlag(tv, i, j);
+    }
+
+    public void toggleFlag(TextView tv, int i, int j){
+        //if there already exists a bomb there, get rid of it
+        if(flagLocation[i][j]){
+            tv.setText("");
+            flagLocation[i][j] = false;
+            FLAGS_LEFT++;
         }
+        //if there isnt, insert it
+        else if(FLAGS_LEFT > 0){
+            tv.setText(getResources().getString(R.string.flag));
+            flagLocation[i][j] = true;
+            FLAGS_LEFT--;
+        }
+        setFlagsTextView();
     }
 
     public void switchMode(View view){
-        TextView button = (TextView) view;
+        TextView tv = (TextView) view;
         flagMode = !flagMode;
 
-        Log.d("Debugger", "Icon currently is " + button.getText() + ". flagMode is " + flagMode);
-        if(button.getText().equals(getResources().getString(R.string.flag))) button.setText(getResources().getString(R.string.pick));
-        else button.setText(getResources().getString(R.string.flag));
+        Log.d("Debugger", "Icon currently is " + tv.getText() + ". flagMode is " + flagMode);
+        if(tv.getText().equals(getResources().getString(R.string.flag))) tv.setText(getResources().getString(R.string.pick));
+        else tv.setText(getResources().getString(R.string.flag));
     }
 }
